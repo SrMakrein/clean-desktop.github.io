@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Pruebas - Juego Incremental</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+            margin: 0;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .test-section {
+            margin-bottom: 30px;
+            border-left: 4px solid #3498db;
+            padding-left: 20px;
+        }
+        
+        .test-section h2 {
+            color: #3498db;
+            font-size: 18px;
+            margin: 0 0 15px 0;
+        }
+        
+        .test-button {
+            display: inline-block;
+            background: #3498db;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px 5px 5px 0;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .test-button:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+        }
+        
+        .test-button.danger {
+            background: #e74c3c;
+        }
+        
+        .test-button.danger:hover {
+            background: #c0392b;
+        }
+        
+        .test-button.success {
+            background: #27ae60;
+        }
+        
+        .test-button.success:hover {
+            background: #229954;
+        }
+        
+        .result {
+            background: #ecf0f1;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: #2c3e50;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .result.success {
+            background: #d5f4e6;
+            color: #27ae60;
+            border-left: 4px solid #27ae60;
+        }
+        
+        .result.error {
+            background: #fadbd8;
+            color: #e74c3c;
+            border-left: 4px solid #e74c3c;
+        }
+        
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        
+        .status.ok {
+            background: #27ae60;
+            color: white;
+        }
+        
+        .status.error {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .status.warning {
+            background: #f39c12;
+            color: white;
+        }
+        
+        .info-box {
+            background: #ebf5fb;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            color: #2c3e50;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Panel de Pruebas del Juego</h1>
+        
+        <div class="info-box">
+            <strong>ℹ️ Instrucciones:</strong> Usa los botones a continuación para probar diferentes aspectos del juego. 
+            Los resultados aparecerán debajo de cada sección.
+        </div>
+
+        <!-- Pruebas de Documentos -->
+        <div class="test-section">
+            <h2>📄 Pruebas de Documentos</h2>
+            <button class="test-button" onclick="testSpawnDocument()">Generar Documento</button>
+            <button class="test-button" onclick="testMultipleDocuments()">Generar 10 Documentos</button>
+            <button class="test-button" onclick="testRemoveAllDocuments()">Eliminar Todos</button>
+            <button class="test-button" onclick="testDocumentValue()">Verificar Valor</button>
+            <div id="doc-results"></div>
+        </div>
+
+        <!-- Pruebas de Mejoras -->
+        <div class="test-section">
+            <h2>🔧 Pruebas de Mejoras</h2>
+            <button class="test-button success" onclick="testUpgradePurchase()">Comprar Mejora</button>
+            <button class="test-button" onclick="testAllUpgrades()">Verificar Todas</button>
+            <button class="test-button" onclick="testUpgradeCosts()">Calcular Costos</button>
+            <button class="test-button" onclick="addTestMoney()">Agregar 500 Dinero</button>
+            <div id="upgrade-results"></div>
+        </div>
+
+        <!-- Pruebas de Power-ups -->
+        <div class="test-section">
+            <h2>⚡ Pruebas de Power-ups</h2>
+            <button class="test-button" onclick="testPowerup('shredder')">Activar Trituradora</button>
+            <button class="test-button" onclick="testPowerup('productivity')">Activar Productividad</button>
+            <button class="test-button" onclick="testPowerup('paperStorm')">Activar Tormenta</button>
+            <button class="test-button" onclick="testRandomPowerup()">Power-up Aleatorio</button>
+            <div id="powerup-results"></div>
+        </div>
+
+        <!-- Pruebas de UI -->
+        <div class="test-section">
+            <h2>🎨 Pruebas de Interfaz</h2>
+            <button class="test-button" onclick="testNotification('success')">Notificación Éxito</button>
+            <button class="test-button" onclick="testNotification('warning')">Notificación Advertencia</button>
+            <button class="test-button" onclick="testNotification('error')">Notificación Error</button>
+            <button class="test-button" onclick="testUIUpdate()">Actualizar UI</button>
+            <div id="ui-results"></div>
+        </div>
+
+        <!-- Pruebas de Persistencia -->
+        <div class="test-section">
+            <h2>💾 Pruebas de Persistencia</h2>
+            <button class="test-button success" onclick="testSaveGame()">Guardar Juego</button>
+            <button class="test-button" onclick="testLoadGame()">Cargar Juego</button>
+            <button class="test-button" onclick="testStorageInfo()">Ver Storage</button>
+            <button class="test-button danger" onclick="testClearStorage()">Limpiar Storage</button>
+            <div id="storage-results"></div>
+        </div>
+
+        <!-- Pruebas de Rendimiento -->
+        <div class="test-section">
+            <h2>⚙️ Pruebas de Rendimiento</h2>
+            <button class="test-button" onclick="testPerformance()">Prueba de Rendimiento</button>
+            <button class="test-button" onclick="testMemoryUsage()">Uso de Memoria</button>
+            <button class="test-button" onclick="testGameSpeed()">Verificar Velocidad</button>
+            <div id="performance-results"></div>
+        </div>
+
+        <!-- Información del Juego -->
+        <div class="test-section">
+            <h2>ℹ️ Información del Juego</h2>
+            <button class="test-button" onclick="testGameStatus()">Estado Actual</button>
+            <button class="test-button" onclick="testConfiguration()">Configuración</button>
+            <button class="test-button" onclick="testCompleteInfo()">Información Completa</button>
+            <div id="info-results"></div>
+        </div>
+    </div>
+
+    <script>
+        // Verificar si el juego está disponible
+        function getGame() {
+            if (typeof window.game === 'undefined') {
+                alert('⚠️ El juego no está cargado. Asegúrate de que index.html está abierto.');
+                return null;
+            }
+            return window.game;
+        }
+
+        function showResult(elementId, message, isError = false) {
+            const element = document.getElementById(elementId);
+            const resultDiv = element.querySelector('.result') || document.createElement('div');
+            resultDiv.className = `result ${isError ? 'error' : 'success'}`;
+            resultDiv.textContent = message;
+            element.appendChild(resultDiv);
+        }
+
+        // Pruebas de Documentos
+        function testSpawnDocument() {
+            const game = getGame();
+            if (!game) return;
+            
+            const before = game.documents.length;
+            game.spawnDocument();
+            const after = game.documents.length;
+            
+            showResult('doc-results', `Documentos antes: ${before}\nDocumentos después: ${after}\n✅ Documento generado correctamente`);
+        }
+
+        function testMultipleDocuments() {
+            const game = getGame();
+            if (!game) return;
+            
+            for (let i = 0; i < 10; i++) {
+                game.spawnDocument();
+            }
+            
+            showResult('doc-results', `Se han generado 10 documentos\nTotal en mesa: ${game.documentsOnDesk}\n✅ Prueba completada`);
+        }
+
+        function testRemoveAllDocuments() {
+            const game = getGame();
+            if (!game) return;
+            
+            const before = game.documents.length;
+            game.documents.forEach(doc => {
+                if (doc.element) doc.element.remove();
+            });
+            game.documents = [];
+            game.documentsOnDesk = 0;
+            
+            showResult('doc-results', `Documentos removidos: ${before}\nDocumentos restantes: ${game.documents.length}\n✅ Todos los documentos eliminados`);
+        }
+
+        function testDocumentValue() {
+            const game = getGame();
+            if (!game) return;
+            
+            const baseValue = game.calculateDocumentValue();
+            const finalValue = game.calculateFinalValue(baseValue);
+            
+            showResult('doc-results', `Valor base: ${baseValue}\nValor final: ${finalValue}\n✅ Cálculo de valor correcto`);
+        }
+
+        // Pruebas de Mejoras
+        function testUpgradePurchase() {
+            const game = getGame();
+            if (!game) return;
+            
+            const before = game.money;
+            const cost = game.getUpgradeCost('clips');
+            game.money = cost + 100;
+            game.buyUpgrade('clips');
+            const after = game.money;
+            
+            showResult('upgrade-results', `Dinero antes: ${before}\nCosto: ${cost}\nDinero después: ${after}\nNivel clips: ${game.upgrades.clips.level}\n✅ Mejora comprada correctamente`);
+        }
+
+        function testAllUpgrades() {
+            const game = getGame();
+            if (!game) return;
+            
+            let info = '📊 Estado de todas las mejoras:\n\n';
+            for (const [key, upgrade] of Object.entries(game.upgrades)) {
+                const cost = game.getUpgradeCost(key);
+                info += `${upgrade.icon} ${upgrade.name}\n`;
+                info += `  Nivel: ${upgrade.level}\n`;
+                info += `  Costo siguiente: ${cost}\n\n`;
+            }
+            info += '✅ Información completa';
+            showResult('upgrade-results', info);
+        }
+
+        function testUpgradeCosts() {
+            const game = getGame();
+            if (!game) return;
+            
+            let info = '💰 Proyección de costos:\n\n';
+            for (const [key, upgrade] of Object.entries(game.upgrades)) {
+                info += `${upgrade.icon} ${upgrade.name}:\n`;
+                for (let i = 1; i <= 5; i++) {
+                    const tempLevel = upgrade.level + i;
+                    const cost = Math.ceil(upgrade.baseCost * Math.pow(1.15, tempLevel));
+                    info += `  Nivel ${tempLevel}: ${cost}\n`;
+                }
+                info += '\n';
+            }
+            showResult('upgrade-results', info);
+        }
+
+        function addTestMoney() {
+            const game = getGame();
+            if (!game) return;
+            
+            game.money += 500;
+            game.updateUI();
+            showResult('upgrade-results', `Se agregaron 500 💰\nDinero actual: ${game.money}\n✅ Dinero agregado`);
+        }
+
+        // Pruebas de Power-ups
+        function testPowerup(type) {
+            const game = getGame();
+            if (!game) return;
+            
+            const before = Object.keys(game.activePowerups).length;
+            game.activatePowerup(type);
+            const after = Object.keys(game.activePowerups).length;
+            
+            showResult('powerup-results', `Power-ups antes: ${before}\nPower-ups después: ${after}\nTipo: ${type}\n✅ Power-up activado`);
+        }
+
+        function testRandomPowerup() {
+            const game = getGame();
+            if (!game) return;
+            
+            game.activateRandomPowerup();
+            showResult('powerup-results', `Power-up aleatorio activado\nActivos: ${Object.keys(game.activePowerups).length}\n✅ Prueba completada`);
+        }
+
+        // Pruebas de UI
+        function testNotification(type) {
+            const game = getGame();
+            if (!game) return;
+            
+            const messages = {
+                success: '✅ Operación completada con éxito',
+                warning: '⚠️ Advertencia: Dinero insuficiente',
+                error: '❌ Error: Algo salió mal'
+            };
+            
+            game.showNotification(messages[type], type);
+            showResult('ui-results', `Notificación ${type} mostrada\n✅ Prueba completada`);
+        }
+
+        function testUIUpdate() {
+            const game = getGame();
+            if (!game) return;
+            
+            game.updateUI();
+            showResult('ui-results', `Dinero mostrado: ${game.elements.money.textContent}\nDocumentos: ${game.elements.documentsCount.textContent}\nVelocidad: ${game.elements.speed.textContent}\n✅ UI actualizada`);
+        }
+
+        // Pruebas de Persistencia
+        function testSaveGame() {
+            const game = getGame();
+            if (!game) return;
+            
+            game.saveGame();
+            const saved = localStorage.getItem('documentGameSave');
+            
+            if (saved) {
+                const data = JSON.parse(saved);
+                showResult('storage-results', `Datos guardados:\nDinero: ${data.money}\nClicks: ${data.totalClicks}\n✅ Juego guardado correctamente`);
+            }
+        }
+
+        function testLoadGame() {
+            const saved = localStorage.getItem('documentGameSave');
+            
+            if (saved) {
+                const data = JSON.parse(saved);
+                showResult('storage-results', `Datos cargados:\nDinero: ${data.money}\nDocumentos removidos: ${data.documentsRemoved}\nVelocidad: ${data.gameSpeed}x\n✅ Carga exitosa`);
+            } else {
+                showResult('storage-results', '⚠️ No hay datos guardados\nGuarda primero el juego', true);
+            }
+        }
+
+        function testStorageInfo() {
+            const saved = localStorage.getItem('documentGameSave');
+            
+            if (saved) {
+                const data = JSON.parse(saved);
+                const size = JSON.stringify(data).length;
+                showResult('storage-results', `📊 Información de Storage:\nTamaño: ${size} bytes\nUltimo guardado: ${new Date(data.timestamp).toLocaleString()}\n✅ Información obtenida`);
+            } else {
+                showResult('storage-results', '⚠️ No hay datos en storage', true);
+            }
+        }
+
+        function testClearStorage() {
+            if (confirm('¿Estás seguro de limpiar el localStorage?')) {
+                localStorage.clear();
+                showResult('storage-results', '🗑️ LocalStorage limpiado\n✅ Acción completada');
+            }
+        }
+
+        // Pruebas de Rendimiento
+        function testPerformance() {
+            const game = getGame();
+            if (!game) return;
+            
+            const start = performance.now();
+            
+            // Generar muchos documentos
+            for (let i = 0; i < 50; i++) {
+                game.spawnDocument();
+            }
+            
+            // Procesar
+            for (let i = 0; i < 100; i++) {
+                game.updateUI();
+            }
+            
+            const end = performance.now();
+            const time = (end - start).toFixed(2);
+            
+            showResult('performance-results', `⏱️ Prueba de rendimiento:\nTiempo: ${time}ms\nDocumentos: ${game.documents.length}\n✅ Rendimiento aceptable`);
+        }
+
+        function testMemoryUsage() {
+            if (performance.memory) {
+                const memory = performance.memory;
+                const used = (memory.usedJSHeapSize / 1048576).toFixed(2);
+                const total = (memory.totalJSHeapSize / 1048576).toFixed(2);
+                const limit = (memory.jsHeapSizeLimit / 1048576).toFixed(2);
+                
+                showResult('performance-results', `💾 Uso de Memoria:\nUtilizado: ${used} MB\nTotal: ${total} MB\nLímite: ${limit} MB\n✅ Información obtenida`);
+            } else {
+                showResult('performance-results', '⚠️ API de memoria no disponible', true);
+            }
+        }
+
+        function testGameSpeed() {
+            const game = getGame();
+            if (!game) return;
+            
+            showResult('performance-results', `⚡ Velocidad del Juego:\nMultiplicador: ${game.gameSpeed}x\nInterval spawn: ${game.config.docSpawnInterval}ms\n✅ Información obtenida`);
+        }
+
+        // Información del Juego
+        function testGameStatus() {
+            const game = getGame();
+            if (!game) return;
+            
+            const info = `📊 Estado Actual del Juego:\n
+Dinero: ${game.money}\n
+Clicks totales: ${game.totalClicks}\n
+Documentos eliminados: ${game.documentsRemoved}\n
+Documentos en mesa: ${game.documentsOnDesk}\n
+Velocidad: ${game.gameSpeed}x\n
+Ingresos por segundo: ${game.incomePerSecond.toFixed(2)}\n
+✅ Información obtenida`;
+            
+            showResult('info-results', info);
+        }
+
+        function testConfiguration() {
+            const game = getGame();
+            if (!game) return;
+            
+            let info = '⚙️ Configuración del Juego:\n\n';
+            for (const [key, value] of Object.entries(game.config)) {
+                info += `${key}: ${value}\n`;
+            }
+            info += '\n✅ Configuración mostrada';
+            
+            showResult('info-results', info);
+        }
+
+        function testCompleteInfo() {
+            const game = getGame();
+            if (!game) return;
+            
+            let info = '📋 Información Completa del Juego:\n\n';
+            info += `=== ESTADO ===\n`;
+            info += `Dinero: ${game.money}\n`;
+            info += `Clicks: ${game.totalClicks}\n`;
+            info += `Documentos removidos: ${game.documentsRemoved}\n`;
+            info += `En mesa: ${game.documentsOnDesk}\n`;
+            info += `Velocidad: ${game.gameSpeed}x\n\n`;
+            
+            info += `=== MEJORAS ===\n`;
+            for (const [key, upgrade] of Object.entries(game.upgrades)) {
+                info += `${upgrade.name}: Nivel ${upgrade.level}\n`;
+            }
+            
+            info += `\n=== POWER-UPS ACTIVOS ===\n`;
+            if (Object.keys(game.activePowerups).length === 0) {
+                info += 'Ninguno\n';
+            } else {
+                for (const key of Object.keys(game.activePowerups)) {
+                    info += `${game.powerupTypes[key].name}\n`;
+                }
+            }
+            
+            info += '\n✅ Información completa mostrada';
+            
+            showResult('info-results', info);
+        }
+    </script>
+</body>
+</html>

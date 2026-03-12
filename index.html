@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Limpieza de Escritorio - Juego Incremental</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header con estadísticas -->
+        <div class="header">
+            <div class="stats">
+                <div class="stat-item">
+                    <span class="stat-label">Dinero</span>
+                    <span class="stat-value" id="money">0</span>
+                    <span class="stat-currency">💰</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Score</span>
+                    <span class="stat-value" id="score">0</span>
+                    <span class="stat-currency">⭐</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Objetivo</span>
+                    <span class="stat-value" id="score-objective">100</span>
+                    <span class="stat-currency">🎯</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Documentos</span>
+                    <span class="stat-value" id="documents-count">0</span>
+                    <span class="stat-currency">📄</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Velocidad</span>
+                    <span class="stat-value" id="speed">1.0x</span>
+                    <span class="stat-currency">⚡</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Área principal del juego -->
+        <main class="game-area">
+            <!-- Escritorio -->
+            <div class="desktop">
+                <div class="desk-surface">
+                    <div class="desk-items"></div>
+                    <!-- Contenedor de documentos -->
+                    <div class="documents-container" id="documents-container"></div>
+                    <!-- Indicador de estrés -->
+                    <div class="stress-indicator" id="stress-indicator"></div>
+                </div>
+            </div>
+
+            <!-- Panel de control lateral -->
+            <aside class="control-panel">
+                <!-- Sección de mejoras -->
+                <div class="panel-section">
+                    <h3 class="section-title">🔧 Mejoras</h3>
+                    <div class="upgrades-list" id="upgrades-list"></div>
+                </div>
+
+                <!-- Sección de estadísticas -->
+                <div class="panel-section">
+                    <h3 class="section-title">📊 Estadísticas</h3>
+                    <div class="stats-detailed">
+                        <div class="detail-stat">
+                            <span>Clicks totales</span>
+                            <span id="total-clicks">0</span>
+                        </div>
+                        <div class="detail-stat">
+                            <span>Documentos eliminados</span>
+                            <span id="total-removed">0</span>
+                        </div>
+                        <div class="detail-stat">
+                            <span>Ganancia por segundo</span>
+                            <span id="income-per-second">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botones de control -->
+                <div class="panel-section">
+                    <button id="reset-btn" class="btn btn-reset">🔄 Reiniciar</button>
+                    <button id="save-btn" class="btn btn-save">💾 Guardar</button>
+                </div>
+            </aside>
+        </main>
+
+        <!-- Notificaciones flotantes -->
+        <div class="notifications" id="notifications"></div>
+
+        <!-- Power-ups activos -->
+        <div class="active-powerups" id="active-powerups"></div>
+
+        <!-- Botón de mute -->
+        <button id="mute-btn" class="mute-btn" title="Mute/Unmute">🔊 Sonido</button>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>
