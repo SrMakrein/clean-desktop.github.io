@@ -22,7 +22,7 @@ html, body {
     width: 100%;
     height: 100%;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #e8e6e1 0%, #d4d0ca 100%);
     overflow: hidden;
 }
 
@@ -99,17 +99,55 @@ html, body {
     position: relative;
     width: 85%;
     height: 90%;
-    background: linear-gradient(135deg, #a8956d 0%, #8b6f47 50%, #704f2e 100%);
+    background: 
+        linear-gradient(90deg, 
+            #8b7355 0%, 
+            #a0865e 8%,
+            #8b6f47 16%,
+            #9d7e5d 24%,
+            #8b7355 32%,
+            #9b8470 40%,
+            #8b6f47 48%,
+            #a08060 56%,
+            #8b7355 64%,
+            #9d8565 72%,
+            #8b6f47 80%,
+            #9b8470 88%,
+            #8b7355 100%
+        );
     border: 8px solid #5a4a3a;
     border-radius: 10px;
     box-shadow: 
         inset 0 2px 10px rgba(0, 0, 0, 0.3),
+        inset 0 -2px 8px rgba(255, 255, 255, 0.1),
         0 10px 30px rgba(0, 0, 0, 0.3),
         0 0 40px rgba(0, 0, 0, 0.2);
     overflow: hidden;
     background-image: 
-        repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0, 0, 0, 0.03) 2px, rgba(0, 0, 0, 0.03) 4px),
-        repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 0, 0, 0.03) 2px, rgba(0, 0, 0, 0.03) 4px);
+        /* Vetas de madera principales */
+        repeating-linear-gradient(
+            90deg, 
+            transparent, 
+            transparent 40px, 
+            rgba(0, 0, 0, 0.05) 40px, 
+            rgba(0, 0, 0, 0.05) 80px
+        ),
+        /* Textura vertical */
+        repeating-linear-gradient(
+            0deg, 
+            transparent, 
+            transparent 2px, 
+            rgba(0, 0, 0, 0.02) 2px, 
+            rgba(0, 0, 0, 0.02) 4px
+        ),
+        /* Detalles diagonales de grano */
+        repeating-linear-gradient(
+            45deg,
+            transparent,
+            transparent 60px,
+            rgba(0, 0, 0, 0.01) 60px,
+            rgba(0, 0, 0, 0.01) 120px
+        );
 }
 
 .desk-items {
@@ -117,9 +155,10 @@ html, body {
     width: 100%;
     height: 100%;
     background-image: 
-        radial-gradient(circle at 15% 25%, rgba(0, 0, 0, 0.05) 1px, transparent 1px),
-        radial-gradient(circle at 85% 75%, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
-    background-size: 100px 100px;
+        /* Manchas aleatorias de polvo/sombra */
+        radial-gradient(ellipse 200px 80px at 15% 25%, rgba(0, 0, 0, 0.08) 0%, transparent 50%),
+        radial-gradient(ellipse 150px 100px at 85% 75%, rgba(0, 0, 0, 0.06) 0%, transparent 50%),
+        radial-gradient(ellipse 180px 120px at 50% 50%, rgba(0, 0, 0, 0.03) 0%, transparent 50%);
 }
 
 .documents-container {
