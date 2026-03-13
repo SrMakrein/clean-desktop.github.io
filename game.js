@@ -60,6 +60,15 @@ class DocumentGame {
                 name: '🖨️ Impresora Automática', 
                 icon: '🖨️',
                 description: 'Más documentos frecuentes\n+3% valor, -100ms spawn'
+            },
+            clickMultiplier: { 
+                level: 0, 
+                baseCost: 150, 
+                baseEffect: 1, 
+                name: '⚡ Multiplicador de Clicks', 
+                icon: '⚡',
+                description: 'Cada click cuenta como múltiples\n+1 click/nivel (máx 10)',
+                maxLevel: 10
             }
         };
 
@@ -79,6 +88,18 @@ class DocumentGame {
             assistantTickRate: 2000,
             powerupChance: 0.02
         };
+
+        // Tipos de objetos de oficina
+        this.officeItems = [
+            { name: 'Documento', icon: '📄', emoji: '📄', value: 1 },
+            { name: 'Carpeta', icon: '📁', emoji: '📁', value: 1.2 },
+            { name: 'Bolígrafo', icon: '✏️', emoji: '✏️', value: 0.8 },
+            { name: 'Nota Adhesiva', icon: '📝', emoji: '📝', value: 0.6 },
+            { name: 'Clips', icon: '📎', emoji: '📎', value: 0.5 },
+            { name: 'Tarea Urgente', icon: '⚠️', emoji: '⚠️', value: 1.5 },
+            { name: 'Correo', icon: '✉️', emoji: '✉️', value: 1.1 },
+            { name: 'Cuaderno', icon: '📓', emoji: '📓', value: 1.3 }
+        ];
 
         // Elementos del DOM
         this.elements = {
@@ -154,12 +175,15 @@ class DocumentGame {
     // ===== DOCUMENTOS =====
     spawnDocument() {
         const docId = this.nextDocId++;
-        const type = Math.floor(Math.random() * 3) + 1;
-        const value = this.calculateDocumentValue();
+        // Seleccionar un objeto de oficina aleatorio
+        const itemType = Math.floor(Math.random() * this.officeItems.length);
+        const itemData = this.officeItems[itemType];
+        const value = this.calculateDocumentValue(itemData.value);
         
         const doc = {
             id: docId,
-            type: type,
+            type: itemType,
+            itemData: itemData,
             value: value,
             element: null,
             spawnTime: Date.now(),
@@ -183,6 +207,7 @@ class DocumentGame {
         const docElement = document.createElement('div');
         docElement.className = `document appear type-${doc.type}`;
         docElement.id = `doc-${doc.id}`;
+        docElement.setAttribute('data-item', doc.itemData.name);
 
         // Posición aleatoria
         const maxX = container.offsetWidth - 120;
@@ -195,8 +220,11 @@ class DocumentGame {
         docElement.style.width = '100px';
         docElement.style.height = '140px';
 
-        // Contenido del documento
+        // Contenido del documento - ahora con emoji del tipo de objeto
         let content = '<div class="document-inner">';
+        
+        // Emoji principal
+        content += `<div class="document-emoji" style="font-size: 48px; text-align: center; margin: 10px 0;">${doc.itemData.emoji}</div>`;
         
         // Clip aleatorio
         if (Math.random() > 0.3) {
@@ -249,8 +277,11 @@ class DocumentGame {
             finalValue = value * 2;
         }
 
+        // Obtener el multiplicador de clicks
+        const clickMultiplier = 1 + this.upgrades.clickMultiplier.level;
+
         this.money += finalValue;
-        this.totalClicks++;
+        this.totalClicks += clickMultiplier;
         this.documentsRemoved++;
         this.score += Math.ceil(finalValue * this.scoreMultiplier);
         this.documentsOnDesk = Math.max(0, this.documentsOnDesk - 1);
@@ -264,8 +295,22 @@ class DocumentGame {
         // Efecto visual de valor flotante
         this.createClickEffect(event.pageX, event.pageY, finalValue);
 
+        // Generar clicks adicionales automáticamente si el multiplicador es > 1
+        if (clickMultiplier > 1) {
+            for (let i = 1; i < clickMultiplier; i++) {
+                setTimeout(() => {
+                    // Crear efecto visual adicional
+                    const offsetX = (Math.random() - 0.5) * 40;
+                    const offsetY = (Math.random() - 0.5) * 40;
+                    this.createClickEffect(event.pageX + offsetX, event.pageY + offsetY, finalValue, true);
+                }, i * 50);
+            }
+        }
+
         // Notificación
-        if (finalValue > value) {
+        if (clickMultiplier > 1) {
+            this.showNotification(`⚡ ¡${clickMultiplier}x Click!`, 'success');
+        } else if (finalValue > value) {
             this.showNotification(`+${finalValue}💰 ¡Multiplicado!`, 'success');
         }
 
@@ -286,20 +331,30 @@ class DocumentGame {
         }, 400);
     }
 
-    createClickEffect(x, y, value) {
+    createClickEffect(x, y, value, isBonus = false) {
         const effect = document.createElement('div');
         effect.className = 'click-effect';
-        effect.textContent = `+${value}`;
+        effect.textContent = isBonus ? `+${value}⭐` : `+${value}`;
         effect.style.left = x + 'px';
         effect.style.top = y + 'px';
-        effect.style.color = this.activePowerups.productivity ? '#ffd700' : '#27ae60';
+        
+        if (isBonus) {
+            effect.style.color = '#ffeb3b';
+            effect.style.fontSize = '16px';
+            effect.style.fontWeight = 'bold';
+        } else if (this.activePowerups.productivity) {
+            effect.style.color = '#ffd700';
+        } else {
+            effect.style.color = '#27ae60';
+        }
+        
         document.body.appendChild(effect);
 
         setTimeout(() => effect.remove(), 800);
     }
 
-    calculateDocumentValue() {
-        const baseValue = this.config.docBaseValue;
+    calculateDocumentValue(itemValueMultiplier = 1) {
+        const baseValue = this.config.docBaseValue * itemValueMultiplier;
         const clipsBonus = 1 + (this.upgrades.clips.level * 0.1);
         return Math.ceil(baseValue * clipsBonus);
     }
@@ -455,6 +510,14 @@ class DocumentGame {
     }
 
     buyUpgrade(upgradeKey) {
+        const upgrade = this.upgrades[upgradeKey];
+        
+        // Verificar si ya está al máximo nivel
+        if (upgrade.maxLevel && upgrade.level >= upgrade.maxLevel) {
+            this.showNotification('¡Mejora al máximo!', 'warning');
+            return;
+        }
+        
         const cost = this.getUpgradeCost(upgradeKey);
         
         if (this.money < cost) {
@@ -463,7 +526,7 @@ class DocumentGame {
         }
 
         this.money -= cost;
-        this.upgrades[upgradeKey].level++;
+        upgrade.level++;
 
         // Efectos especiales según mejora
         switch (upgradeKey) {
@@ -479,6 +542,9 @@ class DocumentGame {
                 this.config.powerupChance += 0.01;
                 this.showNotification('Documentos más frecuentes!', 'success');
                 break;
+            case 'clickMultiplier':
+                this.showNotification(`⚡ Multiplicador ${upgrade.level}x activado!`, 'success');
+                break;
         }
 
         // Actualizar el nivel en la UI
@@ -486,8 +552,13 @@ class DocumentGame {
         if (card) {
             const levelElement = card.querySelector('.upgrade-name span:last-child');
             if (levelElement) {
-                const upgrade = this.upgrades[upgradeKey];
                 levelElement.textContent = `Nivel ${upgrade.level}`;
+                
+                // Si está al máximo, mostrar indicador
+                if (upgrade.maxLevel && upgrade.level >= upgrade.maxLevel) {
+                    levelElement.textContent += ' ⭐MAX⭐';
+                    card.classList.add('maxed-out');
+                }
             }
         }
 

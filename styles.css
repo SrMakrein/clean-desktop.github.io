@@ -711,3 +711,36 @@ html, body {
 .mute-btn.muted:hover {
     background: rgba(231, 76, 60, 1);
 }
+
+/* ===== UPGRADE MAXED OUT ===== */
+.upgrade-card.maxed-out {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 215, 0, 0.05) 100%);
+    border-color: #ffd700;
+}
+
+.upgrade-card.maxed-out:hover {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.2) 0%, rgba(255, 215, 0, 0.1) 100%);
+    border-color: #ffed4e;
+}
+
+/* ===== CLICK EFFECT IMPROVEMENTS ===== */
+.click-effect {
+    position: fixed;
+    pointer-events: none;
+    font-weight: bold;
+    font-size: 18px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    animation: floatUp 0.8s cubic-bezier(0.5, 1, 0.5, 1) forwards;
+    z-index: 999;
+}
+
+@keyframes floatUp {
+    0% {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(-80px) scale(0.8);
+        opacity: 0;
+    }
+}
