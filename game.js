@@ -17,6 +17,9 @@ class DocumentGame {
         this.scoreMultiplier = 1;
         this.highScore = 0;
 
+        // Estado de inicio
+        this.gameStarted = false;
+
         // Sistema de Audio
         this.audioEnabled = true;
         this.soundVolume = 0.3;
@@ -146,8 +149,8 @@ class DocumentGame {
         this.initAudio();
         this.createUpgradesUI();
         this.attachEventListeners();
-        this.startGameLoop();
         this.updateUI();
+        // El juego arranca cuando el jugador pulse el botón de inicio
     }
 
     attachEventListeners() {
@@ -156,6 +159,21 @@ class DocumentGame {
         if (this.elements.muteBtn) {
             this.elements.muteBtn.addEventListener('click', () => this.toggleAudio());
         }
+        const startBtn = document.getElementById('start-btn');
+        if (startBtn) {
+            startBtn.addEventListener('click', () => this.startGame());
+        }
+    }
+
+    startGame() {
+        if (this.gameStarted) return;
+        this.gameStarted = true;
+        const overlay = document.getElementById('start-overlay');
+        if (overlay) {
+            overlay.classList.add('hidden');
+            overlay.addEventListener('animationend', () => overlay.remove(), { once: true });
+        }
+        this.startGameLoop();
     }
 
     // ===== LOOP PRINCIPAL =====
@@ -1156,6 +1174,7 @@ class DocumentGame {
             };
             this.activePowerups = {};
 
+            this.gameStarted = true;
             this.updateUI();
             this.createUpgradesUI();
             this.startGameLoop();
