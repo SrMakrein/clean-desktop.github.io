@@ -37,13 +37,13 @@ class DocumentGame {
                 icon: '📎',
                 description: 'Aumenta el valor de cada documento\n+10% por nivel'
             },
-            coffee: { 
+            premium: { 
                 level: 0, 
                 baseCost: 25, 
-                baseEffect: 0.1, 
-                name: '☕ Café Extra', 
-                icon: '☕',
-                description: 'Aumenta la velocidad de eliminación\n+10% por nivel'
+                baseEffect: 0.2, 
+                name: '💎 Documentos Premium', 
+                icon: '💎',
+                description: 'Genera documentos con más valor\n+20% por nivel'
             },
             assistant: { 
                 level: 0, 
@@ -309,9 +309,7 @@ class DocumentGame {
         }
 
         // Notificación
-        if (clickMultiplier > 1) {
-            this.showNotification(`⚡ ¡${clickMultiplier}x Click!`, 'success');
-        } else if (finalValue > value) {
+        if (finalValue > value) {
             this.showNotification(`+${finalValue}💰 ¡Multiplicado!`, 'success');
         }
 
@@ -365,6 +363,9 @@ class DocumentGame {
         
         // Bonus por clips
         value *= (1 + this.upgrades.clips.level * 0.05);
+        
+        // Bonus por documentos premium
+        value *= (1 + this.upgrades.premium.level * 0.2);
         
         // Bonus por impresora
         value *= (1 + this.upgrades.printer.level * 0.03);
@@ -519,9 +520,8 @@ class DocumentGame {
 
         // Efectos especiales según mejora
         switch (upgradeKey) {
-            case 'coffee':
-                this.gameSpeed += 0.1;
-                this.showNotification('Velocidad aumentada!', 'success');
+            case 'premium':
+                this.showNotification('Documentos más valiosos!', 'success');
                 break;
             case 'assistant':
                 this.showNotification('Asistente mejorado!', 'success');
