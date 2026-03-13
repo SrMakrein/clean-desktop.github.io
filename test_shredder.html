@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Trituradora de Papel</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="stats">
+                <div class="stat">
+                    <span class="stat-label">Dinero:</span>
+                    <span class="stat-value" id="money">$0</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Documentos:</span>
+                    <span class="stat-value" id="docsCount">0</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Trituradora:</span>
+                    <span class="stat-value" id="shredderLevel">Lv 0</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="game-area">
+            <div class="desktop" id="desktop"></div>
+        </div>
+        
+        <div class="sidebar">
+            <h3>Controles de Prueba</h3>
+            <button onclick="testShredder()" style="margin: 10px; padding: 10px 20px; font-size: 14px; cursor: pointer; background: #e74c3c; color: white; border: none; border-radius: 5px;">
+                ▶️ Activar Trituradora
+            </button>
+            <button onclick="addDocuments()" style="margin: 10px; padding: 10px 20px; font-size: 14px; cursor: pointer; background: #3498db; color: white; border: none; border-radius: 5px;">
+                ➕ Agregar Documentos
+            </button>
+            <button onclick="levelUpShredder()" style="margin: 10px; padding: 10px 20px; font-size: 14px; cursor: pointer; background: #27ae60; color: white; border: none; border-radius: 5px;">
+                ⬆️ Subir Nivel Trituradora
+            </button>
+            <p id="test-status" style="margin-top: 20px; padding: 10px; background: #ecf0f1; border-radius: 5px;"></p>
+        </div>
+    </div>
+
+    <script>
+        // Cargar el juego
+        const game = new DocumentGame();
+        
+        let gameLogInitialized = false;
+        const originalLog = console.log;
+        
+        function initGameLog() {
+            if (!gameLogInitialized) {
+                gameLogInitialized = true;
+            }
+        }
+        
+        function updateUI() {
+            document.getElementById('money').textContent = `$${game.money.toFixed(0)}`;
+            document.getElementById('docsCount').textContent = game.documents.length;
+            document.getElementById('shredderLevel').textContent = `Lv ${game.upgrades.shredder.level}`;
+        }
+        
+        function addDocuments() {
+            initGameLog();
+            const count = 5;
+            for (let i = 0; i < count; i++) {
+                game.spawnDocument();
+            }
+            updateUI();
+            logTest(`Agregados ${count} documentos. Total: ${game.documents.length}`);
+        }
+        
+        function levelUpShredder() {
+            initGameLog();
+            game.upgrades.shredder.level++;
+            updateUI();
+            logTest(`Trituradora ahora está en nivel ${game.upgrades.shredder.level}`);
+        }
+        
+        function testShredder() {
+            initGameLog();
+            
+            if (game.upgrades.shredder.level === 0) {
+                logTest('❌ ERROR: La Trituradora debe estar en nivel 1+ para activarse');
+                return;
+            }
+            
+            // Agregar algunos documentos
+            for (let i = 0; i < 3; i++) {
+                game.spawnDocument();
+            }
+            
+            logTest(`📋 Documentos antes: ${game.documents.length}`);
+            logTest(`💰 Dinero antes: $${game.money.toFixed(0)}`);
+            logTest(`🔪 Iniciando activación de Trituradora...`);
+            
+            game.activateShredder();
+            
+            logTest(`⏰ Trituradora activa: ${game.shredderActive}`);
+            logTest(`⏱️ Contador: ${game.shredderCountdown}s`);
+            logTest(`✅ La Trituradora debería contar en 30 segundos...`);
+        }
+        
+        function logTest(message) {
+            const statusEl = document.getElementById('test-status');
+            const timestamp = new Date().toLocaleTimeString();
+            statusEl.innerHTML += `<div>[${timestamp}] ${message}</div>`;
+            statusEl.scrollTop = statusEl.scrollHeight;
+        }
+        
+        // Actualizar UI cada 100ms
+        setInterval(updateUI, 100);
+        updateUI();
+        
+        // Mostrar estado inicial
+        logTest('🎮 Sistema de prueba cargado');
+        logTest('1. Haz clic en "Subir Nivel Trituradora" para darle un nivel');
+        logTest('2. Haz clic en "Agregar Documentos" para crear documentos');
+        logTest('3. Haz clic en "Activar Trituradora" para probar el sistema');
+    </script>
+</body>
+</html>

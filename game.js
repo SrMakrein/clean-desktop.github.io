@@ -27,6 +27,12 @@ class DocumentGame {
         this.documents = [];
         this.nextDocId = 0;
 
+        // Sistema de trituradora
+        this.shredderActive = false;
+        this.shredderCountdown = 0;
+        this.shredderDocsGenerated = 0;
+        this.shredderTimer = null;
+
         // Sistema de mejoras
         this.upgrades = {
             clips: { 
@@ -45,13 +51,13 @@ class DocumentGame {
                 icon: '💎',
                 description: 'Genera documentos con más valor\n+20% por nivel'
             },
-            assistant: { 
+            shredder: { 
                 level: 0, 
                 baseCost: 100, 
                 baseEffect: 1, 
-                name: '🤖 Asistente Virtual', 
-                icon: '🤖',
-                description: 'Elimina documentos automáticamente\nCada nivel = 0.5 docs/2seg'
+                name: '🔪 Trituradora de Papel', 
+                icon: '🔪',
+                description: 'Power-up temporal: duplica dinero\nGasta 1 nivel para activar'
             },
             printer: { 
                 level: 0, 
@@ -156,9 +162,6 @@ class DocumentGame {
         // Spawning de documentos
         this.timers.documentSpawn = setInterval(() => this.spawnDocument(), this.config.docSpawnInterval);
 
-        // Trabajo del asistente
-        this.timers.assistantWork = setInterval(() => this.assistantWork(), this.config.assistantTickRate);
-
         // Actualización de ingresos pasivos
         this.timers.incomeUpdate = setInterval(() => this.passiveIncome(), 1000);
 
@@ -168,9 +171,9 @@ class DocumentGame {
 
     stopGameLoop() {
         clearInterval(this.timers.documentSpawn);
-        clearInterval(this.timers.assistantWork);
         clearInterval(this.timers.incomeUpdate);
         clearInterval(this.updateUIInterval);
+        if (this.shredderTimer) clearInterval(this.shredderTimer);
     }
 
     // ===== DOCUMENTOS =====
@@ -374,58 +377,125 @@ class DocumentGame {
     }
 
     // ===== ASISTENTE AUTOMÁTICO =====
-    assistantWork() {
-        if (this.upgrades.assistant.level === 0) return;
+    activateShredder() {
+        if (this.upgrades.shredder.level === 0) {
+            this.showNotification('No tienes trituradora disponible', 'warning');
+            return;
+        }
+        
+        if (this.shredderActive) {
+            this.showNotification('Trituradora ya activa', 'warning');
+            return;
+        }
 
-        const assistantCount = this.upgrades.assistant.level;
-        const documentsPerTick = assistantCount * 0.5;
+        this.upgrades.shredder.level--;
+        this.shredderActive = true;
+        this.shredderCountdown = 30; // 30 segundos
+        this.shredderDocsGenerated = 0;
+        
+        this.showNotification(`🔪 Trituradora activada por 30 segundos!`, 'success');
+        
+        // Crear el contador visual
+        this.createShredderCounter();
+        
+        // Iniciar el timer de la trituradora
+        this.shredderTimer = setInterval(() => this.updateShredderCountdown(), 1000);
+    }
 
-        if (this.documents.length > 0) {
-            const toRemove = Math.min(Math.ceil(documentsPerTick), this.documents.length);
-            
-            for (let i = 0; i < toRemove; i++) {
-                if (this.documents.length === 0) break;
-                
-                const randomIndex = Math.floor(Math.random() * this.documents.length);
-                const doc = this.documents[randomIndex];
-                const value = this.calculateFinalValue(doc.value);
+    createShredderCounter() {
+        if (this.elements.shredderCounter) {
+            this.elements.shredderCounter.remove();
+        }
 
-                this.money += value;
-                this.documentsRemoved++;
-                this.score += Math.ceil(value * this.scoreMultiplier);
-                this.documentsOnDesk = Math.max(0, this.documentsOnDesk - 1);
+        const counter = document.createElement('div');
+        counter.id = 'shredder-counter';
+        counter.className = 'shredder-counter';
+        counter.innerHTML = `
+            <div class="shredder-counter-inner">
+                <div class="shredder-icon">🔪</div>
+                <div class="shredder-time">${this.shredderCountdown}s</div>
+            </div>
+        `;
+        document.body.appendChild(counter);
+        this.elements.shredderCounter = counter;
+    }
 
-                // Reproducir sonido de papel
-                this.playSound('paperClick');
-
-                doc.element.classList.add('removing');
-                
-                // Usar variable local para evitar problemas de closure
-                const docToRemove = doc;
-                const docId = doc.id;
-                
-                setTimeout(() => {
-                    if (docToRemove.element && docToRemove.element.parentNode) {
-                        docToRemove.element.remove();
-                    }
-                    // Remover usando el ID para evitar inconsistencias
-                    const index = this.documents.findIndex(d => d.id === docId);
-                    if (index !== -1) {
-                        this.documents.splice(index, 1);
-                    }
-                }, 400);
+    updateShredderCountdown() {
+        this.shredderCountdown--;
+        
+        if (this.elements.shredderCounter) {
+            this.elements.shredderCounter.querySelector('.shredder-time').textContent = `${this.shredderCountdown}s`;
+        }
+        
+        // Durante los últimos 10 segundos, generar documentos automáticamente
+        if (this.shredderCountdown === 10 || (this.shredderCountdown < 10 && this.shredderCountdown > 0)) {
+            const docsToGenerate = 1 + this.upgrades.shredder.level;
+            for (let i = 0; i < docsToGenerate; i++) {
+                this.spawnDocument();
+                this.shredderDocsGenerated++;
             }
         }
+        
+        // Cuando llega a 0, activar la trituradora
+        if (this.shredderCountdown <= 0) {
+            clearInterval(this.shredderTimer);
+            this.executeShredder();
+        }
+    }
+
+    executeShredder() {
+        this.shredderActive = false;
+        
+        if (this.elements.shredderCounter) {
+            this.elements.shredderCounter.remove();
+            this.elements.shredderCounter = null;
+        }
+        
+        // Reproducir sonido especial de trituradora
+        this.playSound('shredder');
+        
+        // Procesar todos los documentos
+        const docsCopy = [...this.documents];
+        for (const doc of docsCopy) {
+            if (doc.element && doc.element.parentNode) {
+                const value = this.calculateFinalValue(doc.value);
+                // Dinero duplicado por la trituradora
+                const finalValue = value * 2;
+                
+                this.money += finalValue;
+                this.documentsRemoved++;
+                this.score += Math.ceil(finalValue * this.scoreMultiplier);
+                
+                // Efecto visual especial
+                this.createClickEffect(
+                    doc.element.getBoundingClientRect().left,
+                    doc.element.getBoundingClientRect().top,
+                    finalValue,
+                    true
+                );
+                
+                doc.element.classList.add('removing');
+                
+                setTimeout(() => {
+                    if (doc.element && doc.element.parentNode) {
+                        doc.element.remove();
+                    }
+                }, 200);
+            }
+        }
+        
+        this.documents = [];
+        this.documentsOnDesk = 0;
+        
+        this.showNotification(`🔪 ¡Trituradora completada! +${docsCopy.length} documentos destruidos`, 'success');
+        this.updateStressIndicator();
     }
 
     // ===== INGRESOS PASIVOS =====
     passiveIncome() {
-        const incomePerSecond = (this.upgrades.assistant.level * 2) * this.gameSpeed;
-        this.incomePerSecond = incomePerSecond;
+        this.incomePerSecond = 0;
         
-        if (incomePerSecond > 0) {
-            this.money += incomePerSecond;
-        }
+        // Los ingresos pasivos ya no existen - todo basado en clicks y power-ups
 
         // Remover documentos viejos
         const now = Date.now();
@@ -523,8 +593,8 @@ class DocumentGame {
             case 'premium':
                 this.showNotification('Documentos más valiosos!', 'success');
                 break;
-            case 'assistant':
-                this.showNotification('Asistente mejorado!', 'success');
+            case 'shredder':
+                this.showNotification('🔪 Trituradora disponible!', 'success');
                 break;
             case 'printer':
                 this.config.docSpawnInterval = Math.max(1000, this.config.docSpawnInterval - 100);
@@ -769,6 +839,9 @@ class DocumentGame {
             case 'milestone':
                 this.playMilestoneSound();
                 break;
+            case 'shredder':
+                this.playShredderSound();
+                break;
         }
     }
 
@@ -889,6 +962,56 @@ class DocumentGame {
             gain3.gain.exponentialRampToValueAtTime(0.01, now + 0.65);
             osc3.start(now + 0.3);
             osc3.stop(now + 0.65);
+        } catch (e) {
+            // Si falla, simplemente continuar sin sonido
+        }
+    }
+
+    playShredderSound() {
+        // Sonido mecánico y destructivo para la trituradora
+        try {
+            const ctx = this.audioContext;
+            const now = ctx.currentTime;
+            
+            // Sonido base profundo y resonante (inicio de la trituradora)
+            const bassOsc = ctx.createOscillator();
+            const bassGain = ctx.createGain();
+            bassOsc.connect(bassGain);
+            bassGain.connect(ctx.destination);
+            bassOsc.frequency.setValueAtTime(150, now);
+            bassOsc.frequency.exponentialRampToValueAtTime(80, now + 0.8);
+            bassGain.gain.setValueAtTime(0.2 * this.soundVolume, now);
+            bassGain.gain.exponentialRampToValueAtTime(0.02, now + 0.8);
+            bassOsc.start(now);
+            bassOsc.stop(now + 0.8);
+            
+            // Sonido metálico crujiente (desgarro de papel)
+            const noiseBuffer = ctx.createBuffer(1, ctx.sampleRate * 0.6, ctx.sampleRate);
+            const noiseData = noiseBuffer.getChannelData(0);
+            for (let i = 0; i < noiseBuffer.length; i++) {
+                noiseData[i] = Math.random() * 2 - 1;
+            }
+            const noiseSource = ctx.createBufferSource();
+            noiseSource.buffer = noiseBuffer;
+            const noiseGain = ctx.createGain();
+            noiseSource.connect(noiseGain);
+            noiseGain.connect(ctx.destination);
+            noiseGain.gain.setValueAtTime(0.12 * this.soundVolume, now);
+            noiseGain.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
+            noiseSource.start(now);
+            
+            // Sonido agudo de finalización (éxito)
+            const highOsc = ctx.createOscillator();
+            const highGain = ctx.createGain();
+            highOsc.connect(highGain);
+            highGain.connect(ctx.destination);
+            highOsc.frequency.setValueAtTime(1200, now + 0.5);
+            highOsc.frequency.exponentialRampToValueAtTime(800, now + 0.9);
+            highGain.gain.setValueAtTime(0, now + 0.5);
+            highGain.gain.setValueAtTime(0.1 * this.soundVolume, now + 0.5);
+            highGain.gain.exponentialRampToValueAtTime(0.01, now + 0.9);
+            highOsc.start(now + 0.5);
+            highOsc.stop(now + 0.9);
         } catch (e) {
             // Si falla, simplemente continuar sin sonido
         }
