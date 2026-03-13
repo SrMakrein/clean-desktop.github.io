@@ -67,8 +67,8 @@ class DocumentGame {
                 baseEffect: 1, 
                 name: '⚡ Multiplicador de Clicks', 
                 icon: '⚡',
-                description: 'Cada click cuenta como múltiples\n+1 click/nivel (máx 10)',
-                maxLevel: 10
+                description: 'Cada click cuenta como múltiples\n+1 click/nivel (máx 100)',
+                maxLevel: 100
             }
         };
 
@@ -118,7 +118,8 @@ class DocumentGame {
             activePowerups: document.getElementById('active-powerups'),
             resetBtn: document.getElementById('reset-btn'),
             saveBtn: document.getElementById('save-btn'),
-            muteBtn: document.getElementById('mute-btn')
+            muteBtn: document.getElementById('mute-btn'),
+            clickMultiplier: document.getElementById('click-multiplier')
         };
 
         // Timers
@@ -460,7 +461,12 @@ class DocumentGame {
         const upgradesList = this.elements.upgradesList;
         upgradesList.innerHTML = '';
 
-        for (const [key, upgrade] of Object.entries(this.upgrades)) {
+        // Ordenar upgrades por coste base
+        const sortedUpgrades = Object.entries(this.upgrades).sort((a, b) => {
+            return a[1].baseCost - b[1].baseCost;
+        });
+
+        for (const [key, upgrade] of sortedUpgrades) {
             const cost = this.getUpgradeCost(key);
             const card = document.createElement('div');
             card.className = 'upgrade-card';
@@ -479,25 +485,8 @@ class DocumentGame {
                 <div class="upgrade-level">
                     Costo: ${cost} 💰
                 </div>
-                <div class="upgrade-tooltip">${upgrade.description}</div>
+                <div class="upgrade-description">${upgrade.description}</div>
             `;
-
-            // Agregar evento de hover con retardo
-            card.addEventListener('mouseenter', () => {
-                const tooltip = card.querySelector('.upgrade-tooltip');
-                if (tooltip) {
-                    setTimeout(() => {
-                        tooltip.classList.add('show');
-                    }, 1000);
-                }
-            });
-
-            card.addEventListener('mouseleave', () => {
-                const tooltip = card.querySelector('.upgrade-tooltip');
-                if (tooltip) {
-                    tooltip.classList.remove('show');
-                }
-            });
 
             card.addEventListener('click', () => this.buyUpgrade(key));
             upgradesList.appendChild(card);
@@ -667,6 +656,12 @@ class DocumentGame {
         this.elements.totalRemoved.textContent = this.documentsRemoved;
         this.elements.incomePerSecond.textContent = this.formatNumber(Math.round(this.incomePerSecond * 100) / 100);
         
+        // Actualizar multiplicador de clicks
+        if (this.elements.clickMultiplier) {
+            const multiplier = 1 + this.upgrades.clickMultiplier.level;
+            this.elements.clickMultiplier.textContent = `${multiplier}x`;
+        }
+        
         // Actualizar Score
         if (this.elements.score) {
             this.elements.score.textContent = this.formatNumber(Math.floor(this.score));
@@ -771,6 +766,9 @@ class DocumentGame {
             case 'powerup':
                 this.playPowerupSound();
                 break;
+            case 'milestone':
+                this.playMilestoneSound();
+                break;
         }
     }
 
@@ -851,6 +849,51 @@ class DocumentGame {
         }
     }
 
+    playMilestoneSound() {
+        // Sonido de celebración para hito alcanzado
+        try {
+            const ctx = this.audioContext;
+            const now = ctx.currentTime;
+            
+            // Primera nota (Mi)
+            const osc1 = ctx.createOscillator();
+            const gain1 = ctx.createGain();
+            osc1.connect(gain1);
+            gain1.connect(ctx.destination);
+            osc1.frequency.setValueAtTime(660, now);
+            gain1.gain.setValueAtTime(0.15 * this.soundVolume, now);
+            gain1.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+            osc1.start(now);
+            osc1.stop(now + 0.3);
+            
+            // Segunda nota (Sol - más aguda)
+            const osc2 = ctx.createOscillator();
+            const gain2 = ctx.createGain();
+            osc2.connect(gain2);
+            gain2.connect(ctx.destination);
+            osc2.frequency.setValueAtTime(880, now + 0.15);
+            gain2.gain.setValueAtTime(0, now + 0.15);
+            gain2.gain.setValueAtTime(0.15 * this.soundVolume, now + 0.15);
+            gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.45);
+            osc2.start(now + 0.15);
+            osc2.stop(now + 0.45);
+            
+            // Tercera nota (Do - aún más aguda)
+            const osc3 = ctx.createOscillator();
+            const gain3 = ctx.createGain();
+            osc3.connect(gain3);
+            gain3.connect(ctx.destination);
+            osc3.frequency.setValueAtTime(1047, now + 0.3);
+            gain3.gain.setValueAtTime(0, now + 0.3);
+            gain3.gain.setValueAtTime(0.15 * this.soundVolume, now + 0.3);
+            gain3.gain.exponentialRampToValueAtTime(0.01, now + 0.65);
+            osc3.start(now + 0.3);
+            osc3.stop(now + 0.65);
+        } catch (e) {
+            // Si falla, simplemente continuar sin sonido
+        }
+    }
+
     toggleAudio() {
         this.audioEnabled = !this.audioEnabled;
         if (this.elements.muteBtn) {
@@ -873,8 +916,12 @@ class DocumentGame {
         if (this.score >= this.scoreObjective) {
             this.highScore = Math.max(this.highScore, this.score);
             this.scoreObjective = Math.ceil(this.scoreObjective * 1.5);
-            this.showNotification(`🎯 ¡Objetivo alcanzado! Nuevo objetivo: ${this.scoreObjective}`, 'success');
             this.scoreMultiplier = Math.min(2, this.scoreMultiplier + 0.1);
+            
+            // Reproducir sonido de celebración
+            this.playSound('milestone');
+            
+            this.showNotification(`🎯 ¡Objetivo alcanzado! Nuevo objetivo: ${this.scoreObjective}`, 'success');
         }
     }
 
