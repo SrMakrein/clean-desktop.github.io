@@ -538,7 +538,7 @@ html, body {
 .notifications {
     position: fixed;
     top: 100px;
-    right: 30px;
+    left: 30px;
     pointer-events: none;
 }
 

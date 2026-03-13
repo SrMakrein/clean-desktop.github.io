@@ -314,11 +314,6 @@ class DocumentGame {
             }
         }
 
-        // Notificación en contenedor seguro
-        if (finalValue > value) {
-            this.showSafeFeedback(`+${finalValue}💰 ¡Multiplicado!`);
-        }
-
         // Remover documento - usar variables locales para evitar closure issues
         const docToRemove = doc;
         const docIdToRemove = docId;
