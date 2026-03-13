@@ -297,10 +297,8 @@ class DocumentGame {
         // Animación de eliminación
         doc.element.classList.add('removing');
 
-        // Efecto visual de valor en escritorio (sin interferir con power-ups)
-        if (this.activePowerups.productivity || clickMultiplier > 1) {
-            this.createClickEffect(event.pageX, event.pageY, finalValue);
-        }
+        // Efecto visual de valor en escritorio
+        this.createClickEffect(event.pageX, event.pageY, finalValue);
 
         // Generar clicks adicionales automáticamente si el multiplicador es > 1
         if (clickMultiplier > 1) {
