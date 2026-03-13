@@ -43,13 +43,13 @@ class DocumentGame {
                 icon: '📎',
                 description: 'Aumenta el valor de cada documento\n+10% por nivel'
             },
-            premium: { 
+            stormChance: { 
                 level: 0, 
                 baseCost: 25, 
-                baseEffect: 0.2, 
-                name: '💎 Documentos Premium', 
-                icon: '💎',
-                description: 'Genera documentos con más valor\n+20% por nivel'
+                baseEffect: 0.05, 
+                name: '🌪️ Probabilidad Tormenta', 
+                icon: '🌪️',
+                description: 'Probabilidad de tormenta de papeles\n+5% por nivel (máx 75%)'
             },
             shredder: { 
                 level: 0, 
@@ -121,6 +121,7 @@ class DocumentGame {
             incomePerSecond: document.getElementById('income-per-second'),
             stressIndicator: document.getElementById('stress-indicator'),
             notifications: document.getElementById('notifications'),
+            safeFeedback: document.getElementById('safe-feedback'),
             activePowerups: document.getElementById('active-powerups'),
             resetBtn: document.getElementById('reset-btn'),
             saveBtn: document.getElementById('save-btn'),
@@ -296,8 +297,10 @@ class DocumentGame {
         // Animación de eliminación
         doc.element.classList.add('removing');
 
-        // Efecto visual de valor flotante
-        this.createClickEffect(event.pageX, event.pageY, finalValue);
+        // Efecto visual de valor en escritorio (sin interferir con power-ups)
+        if (this.activePowerups.productivity || clickMultiplier > 1) {
+            this.createClickEffect(event.pageX, event.pageY, finalValue);
+        }
 
         // Generar clicks adicionales automáticamente si el multiplicador es > 1
         if (clickMultiplier > 1) {
@@ -311,9 +314,9 @@ class DocumentGame {
             }
         }
 
-        // Notificación
+        // Notificación en contenedor seguro
         if (finalValue > value) {
-            this.showNotification(`+${finalValue}💰 ¡Multiplicado!`, 'success');
+            this.showSafeFeedback(`+${finalValue}💰 ¡Multiplicado!`);
         }
 
         // Remover documento - usar variables locales para evitar closure issues
@@ -367,8 +370,7 @@ class DocumentGame {
         // Bonus por clips
         value *= (1 + this.upgrades.clips.level * 0.05);
         
-        // Bonus por documentos premium
-        value *= (1 + this.upgrades.premium.level * 0.2);
+        // Storm chance no afecta valor directo, afecta probabilidad
         
         // Bonus por impresora
         value *= (1 + this.upgrades.printer.level * 0.03);
@@ -590,8 +592,8 @@ class DocumentGame {
 
         // Efectos especiales según mejora
         switch (upgradeKey) {
-            case 'premium':
-                this.showNotification('Documentos más valiosos!', 'success');
+            case 'stormChance':
+                this.showNotification('🌪️ Probabilidad de tormenta aumentada!', 'success');
                 break;
             case 'shredder':
                 this.showNotification('🔪 Trituradora disponible!', 'success');
@@ -701,6 +703,16 @@ class DocumentGame {
         }
     }
 
+    checkStormProbability() {
+        // Calcular probabilidad de tormenta basada en nivel
+        const stormChance = Math.min(0.75, this.upgrades.stormChance.level * 0.05);
+        
+        if (Math.random() < stormChance) {
+            // Activar tormenta de papeles
+            this.activatePowerup('paperStorm');
+        }
+    }
+
     updatePowerupUI() {
         const container = this.elements.activePowerups;
         container.innerHTML = '';
@@ -805,6 +817,19 @@ class DocumentGame {
             notification.classList.add('remove');
             setTimeout(() => notification.remove(), 400);
         }, 3000);
+    }
+
+    showSafeFeedback(message) {
+        const container = document.getElementById('safe-feedback');
+        const feedback = document.createElement('div');
+        feedback.className = 'safe-feedback-item';
+        feedback.textContent = message;
+        container.appendChild(feedback);
+
+        setTimeout(() => {
+            feedback.classList.add('fade-out');
+            setTimeout(() => feedback.remove(), 400);
+        }, 2000);
     }
 
     formatNumber(num) {
